@@ -246,7 +246,7 @@
   (reagent/create-class
    {:component-will-mount
     (fn []
-      (GET "http://localhost:3000/all" :handler
+      (GET "/all" :handler
            #(re-frame/dispatch
              [:update-websites! (map (comp bean clj->js) %)])))
     :reagent-render main-page}))
