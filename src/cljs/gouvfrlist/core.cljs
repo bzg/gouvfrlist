@@ -19,8 +19,8 @@
  :initialize-db!
  (fn [_ _]      
    {:websites      nil
+    :sort-by       nil
     :view          :list
-    :sort-by       :stars
     :reverse-sort  true
     :search-filter ""}))
 
@@ -79,7 +79,7 @@
               :reqs  (sort-by :requests-number w0)
               :https (sort-by :is-secure? w0)
               :ga    (sort-by :using-ga? w0)
-              w0)]
+              (shuffle w0))]
      (take max-items-per-page
            (apply-search-filter
             (if @(re-frame/subscribe [:reverse-sort?])
