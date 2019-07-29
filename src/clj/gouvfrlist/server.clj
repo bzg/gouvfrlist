@@ -11,7 +11,8 @@
             [hickory.core :as h]
             [gouvfrlist.db :as db]
             [gouvfrlist.config :as config]
-            [tea-time.core :as tt])
+            [tea-time.core :as tt]
+            [ring.middleware.cors :refer [wrap-cors]])
   (:gen-class))
 
 (def chromium-opts
@@ -94,7 +95,7 @@
       (website-logs-infos @l)))))
 
 (def valid-domains
-  (with-open [rdr (clojure.java.io/reader "tested.gouv.fr.txt")]
+  (with-open [rdr (io/reader "tested.gouv.fr.txt")]
     (reduce conj [] (line-seq rdr))))
 
 (defn build-websites-database []
@@ -123,10 +124,10 @@
   (not-found "Not Found"))
 
 ;; FIXME: Don't wrap reload
-(def app (-> #'routes wrap-reload))
+(def app (-> #'routes wrap-cors wrap-reload))
 
 (defn -main [& args]
-  (tt/start!)
+  ;; (tt/start!)
   (let [port (read-string (or (System/getenv "GOUVFRLIST_PORT")
                               (:port config/opts) "3000"))]
     (def server (server/run-server app {:port port}))))

@@ -16,6 +16,7 @@
                  [clj-http "3.10.0"]
                  [ring "1.7.1"]
                  [ring-middleware-format "0.7.4"]
+                 [ring-cors "0.1.13"]
                  [cheshire "5.8.1"]
                  [hickory "0.7.1"]
                  [clojure-csv/clojure-csv "2.0.1"]
