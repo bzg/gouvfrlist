@@ -1,0 +1,5 @@
+{:db-uri           "datahike:file:///home/web/gouvfrlist"
+ :path-driver      "/usr/lib/chromium-browser/chromedriver"
+ :path-browser     "/usr/bin/chromium-browser"
+ :rebuild-interval 86400
+ :port             "3000"}

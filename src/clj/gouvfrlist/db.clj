@@ -1,7 +1,8 @@
 (ns gouvfrlist.db
-  (:require [datahike.api :as d]))
+  (:require [datahike.api :as d]
+            [gouvfrlist.config :as config]))
 
-(defn db-uri [] "datahike:file:///home/guerry/ecolist3")
+(defn db-uri [] (:db-uri config/opts))
 
 ;; Define the global database schema
 (def db-schema {})
@@ -45,5 +46,3 @@
   (map first (d/q '[:find (pull ?e [*])
                     :where [?e :title]]
                   @db-conn)))
-
-

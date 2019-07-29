@@ -6,40 +6,17 @@
             [compojure.core :refer [GET POST defroutes]]
             [compojure.route :refer [not-found resources]]
             [cheshire.core :as json]
-            [clj-http.client :as http]
             [etaoin.api :as e]
             [etaoin.dev :as edev]
             [hickory.core :as h]
             [gouvfrlist.db :as db]
-            [clojure-csv.core :as csv])
+            [gouvfrlist.config :as config]
+            [tea-time.core :as tt])
   (:gen-class))
 
-(def domains-csv-url
-  "https://gist.githubusercontent.com/bzg/08e7a8651533057e278a10a580a7a1e0/raw/2761754b7c8d0c3e3e1ad42a77679cc513234bba/gouv.fr.csv")
-
-(def base-domains
-  (rest (map first (csv/parse-csv (slurp domains-csv-url)))))
-
-(def http-get-opts {:insecure?          true
-                    :socket-timeout     2000
-                    :connection-timeout 2000
-                    :max-redirects      3})
-
-(defn revised-domains [domain_names]
-  (remove
-   nil?
-   (map (fn [d]
-          (let [dp    (str "http://" d)
-                resp  (try (http/get dp http-get-opts)
-                           (catch Exception e nil))
-                redir (last (:trace-redirects resp))]
-            (if (= (:status resp) 200)
-              (or redir dp))))
-        domain_names)))
-
 (def chromium-opts
-  {:path-driver   "/usr/lib/chromium-browser/chromedriver"
-   :path-browser  "/usr/bin/chromium-browser"
+  {:path-driver   (:path-driver config/opts)
+   :path-browser  (:path-browser config/opts)
    :load-strategy :none
    :headless      true
    :dev
@@ -87,7 +64,8 @@
                          #(get-in % [:params :response :url])
                          logs0))]
     {:requests-number (count requests)
-     :is-secure?      (if (= (get-in logs1 [:params :response :securityState]) "secure")
+     :is-secure?      (if (= (get-in
+                              logs1 [:params :response :securityState]) "secure")
                         true false)
      :ip-address      (or (get-in logs1 [:params :response :remoteIPAddress]) "")
      :content-length  (total-content-length requests)}))
@@ -115,10 +93,16 @@
       (website-html-infos @s)
       (website-logs-infos @l)))))
 
-(defn build-the-database []
-  (map website-infos (take 8 (revised-domains base-domains))))
+(def valid-domains
+  (with-open [rdr (clojure.java.io/reader "tested.gouv.fr.txt")]
+    (reduce conj [] (line-seq rdr))))
 
-;; (build-the-database)
+(defn build-websites-database []
+  (map website-infos valid-domains))
+
+(def rebuild-database
+  (tt/every! (:rebuild-interval config/opts)
+             0 build-the-database))
 
 (defn default-page []
   (assoc
@@ -138,11 +122,13 @@
   (resources "/")
   (not-found "Not Found"))
 
+;; FIXME: Don't wrap reload
 (def app (-> #'routes wrap-reload))
 
 (defn -main [& args]
-  (let [port (read-string (or (System/getenv "GOUVFRLIST_PORT") "3000"))]
+  (tt/start!)
+  (let [port (read-string (or (System/getenv "GOUVFRLIST_PORT")
+                              (:port config/opts) "3000"))]
     (def server (server/run-server app {:port port}))))
 
 ;; (-main)
-

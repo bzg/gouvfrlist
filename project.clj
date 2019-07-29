@@ -2,7 +2,7 @@
 ;; SPDX-License-Identifier: EPL-2.0
 ;; License-Filename: LICENSES/EPL-2.0.txt
 
-(defproject gouvfrlist "0.1.0"
+(defproject gouvfrlist "0.2.0"
 
   :description "Frontend to display public sector source code repositories"
   :url "https://github.com/bzg/gouvfrlist"
@@ -18,7 +18,8 @@
                  [ring-middleware-format "0.7.4"]
                  [cheshire "5.8.1"]
                  [hickory "0.7.1"]
-                 [clojure-csv/clojure-csv "2.0.1"]]
+                 [clojure-csv/clojure-csv "2.0.1"]
+                 [tea-time "1.0.1"]]
   :source-paths ["src/clj" "src/cljs"]
   :main gouvfrlist.server
   :uberjar-name "gouvfrlist-standalone.jar"
