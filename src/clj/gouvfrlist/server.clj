@@ -102,7 +102,7 @@
 
 (def rebuild-database
   (tt/every! (:rebuild-interval config/opts)
-             0 build-the-database))
+             0 build-websites-database))
 
 (defn default-page []
   (assoc
