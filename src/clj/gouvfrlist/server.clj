@@ -124,7 +124,9 @@
   (not-found "Not Found"))
 
 ;; FIXME: Don't wrap reload
-(def app (-> #'routes wrap-cors wrap-reload))
+(def app (-> #'routes (wrap-cors
+                       :access-control-allow-origin [#".*"]
+                       :access-control-allow-methods [:get]) wrap-reload))
 
 (defn -main [& args]
   ;; (tt/start!)
