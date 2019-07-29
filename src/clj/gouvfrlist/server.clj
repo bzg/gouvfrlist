@@ -26,9 +26,7 @@
      :network?   true
      :page?      true
      :interval   1000
-     :categories [:devtools
-                  :devtools.network
-                  :devtools.timeline]}}})
+     :categories [:devtools]}}})
 
 (defn total-content-length [req]
   (reduce
