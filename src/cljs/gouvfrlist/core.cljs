@@ -135,14 +135,14 @@
                :title    "Trier par ordre alphabétique"
                :on-click #(re-frame/dispatch [:sort-by! :name])} "Titre"]]
      [:th [:a {:class    "button"
-               :title    "Trier par taille"
+               :title    "Trier par taille de contenus téléchargés"
                :on-click #(re-frame/dispatch [:sort-by! :size])} "Taille"]]
      [:th [:a {:class    "button"
-               :title    "Trier par nombre de tags"
-               :on-click #(re-frame/dispatch [:sort-by! :tags])} "# tags"]]
+               :title    "Trier par nombre de balises HTML"
+               :on-click #(re-frame/dispatch [:sort-by! :tags])} "Balises"]]
      [:th [:a {:class    "button"
                :title    "Trier par nombre de requêtes"
-               :on-click #(re-frame/dispatch [:sort-by! :reqs])} "# requêtes"]]
+               :on-click #(re-frame/dispatch [:sort-by! :reqs])} "Requêtes"]]
      [:th [:a {:class    "button"
                :title    "Le site est-il accessible en https?"
                :on-click #(re-frame/dispatch [:sort-by! :https])}  "https?"]]
@@ -242,8 +242,16 @@
   [:div
    [:div {:class "container"}
     [:h1 {:class "title"} "Pourquoi ?"]
-    [:p ""]
-    [:br]]])
+    (md-to-string
+     "Ce site propose de chercher dans les titre et les descriptions des sites de l'administration publique.  Une première liste de ces sites est [disponible ici](https://gist.github.com/bzg/08e7a8651533057e278a10a580a7a1e0) ; le site utilise une [version corrigée](https://github.com/bzg/gouvfrlist/blob/master/tested.gouv.fr.txt) de cette liste, sans les sites indisponibles.  Le but est de voir si une telle liste peut être utile à d'autres.")
+    [:br]
+    [:h1 {:class "title"} "Quelles données sont présentées ?"]
+    (md-to-string
+     "Pour chaque site nous indiquons (1) la taille des contenus téléchargés (2) le nombre de requêtes faites par le site vers des serveurs pour télécharger ces contenus (3) le nombre de balises (4) si le site utilise correctement une connexion sécurisée avec https (5) et si le site utilise Google Analytics ou non. Vous pouvez **télécharger** ces données [ici](/all.json).  Une partie de ces données correspond à celle utilisées par [ecoindex](http://www.ecoindex.fr/quest-ce-que-ecoindex/).")
+    [:br]
+    [:h1 {:class "title"} "La suite ?"]
+    (md-to-string
+     "Ce site est **expérimental**.  Les informations qu'il présente peuvent être erronnées.  N'hésitez pas à me [signaler](https://github.com/bzg/gouvfrlist/issues) tout problème constaté ou à proposer des améliorations.  Vous pouvez aussi m'envoyer [un mail](mailto:bzg@bzg.fr).  Merci pour vos retours !")]])
 
 (defn change-page [next]
   (let [websites-page @(re-frame/subscribe [:websites-page?])
