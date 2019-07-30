@@ -132,7 +132,7 @@
   (GET "/all" []
        (assoc
         (response/response
-         (json/generate-string (db/get-all-filtered-websites)))
+         (json/generate-string (db/get-all-websites)))
         :headers {"Content-Type" "application/json; charset=utf-8"}))
   (resources "/")
   (not-found "Not Found"))
