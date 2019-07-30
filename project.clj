@@ -19,7 +19,7 @@
                  [ring-cors "0.1.13"]
                  [cheshire "5.8.1"]
                  [hickory "0.7.1"]
-                 [clojure-csv/clojure-csv "2.0.1"]
+                 [clojure-csv/clojure-csv "2.0.2"]
                  [tea-time "1.0.1"]]
   :source-paths ["src/clj" "src/cljs"]
   :main gouvfrlist.server
