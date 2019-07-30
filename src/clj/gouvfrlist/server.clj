@@ -12,8 +12,16 @@
             [gouvfrlist.db :as db]
             [gouvfrlist.config :as config]
             [tea-time.core :as tt]
-            [ring.middleware.cors :refer [wrap-cors]])
+            [taoensso.timbre :as timbre]
+            [taoensso.timbre.appenders.core :as appenders])
   (:gen-class))
+
+(timbre/set-config!
+ {:level     :debug
+  :output-fn (partial timbre/default-output-fn {:stacktrace-fonts {}})
+  :appenders
+  {:println (timbre/println-appender {:stream :auto})
+   :spit    (appenders/spit-appender {:fname (:log-file config/opts)})}})
 
 (def chromium-opts
   {:path-driver   (:path-driver config/opts)
@@ -48,12 +56,11 @@
         title         (last (first (get-vals :title)))
         description   (get-meta-vals "description" :name)
         keywords      (get-meta-vals "keywords" :name)]
-    {:title          (or title "")      
-     :tags           count-tags
-     :description    (or description "")
-     :keywords       (or keywords "")
-     :search-against (clojure.string/join " " [title keywords description])
-     :og:image       (or (get-meta-vals "og:image" :property) "")}))
+    {:title       (or title "")      
+     :tags        count-tags
+     :description (or description "")
+     :keywords    (or keywords "")
+     :og:image    (or (get-meta-vals "og:image" :property) "")}))
 
 (defn website-logs-infos [logs]
   (let [requests (edev/logs->requests logs)
@@ -66,7 +73,7 @@
      :is-secure?      (if (= (get-in
                               logs1 [:params :response :securityState]) "secure")
                         true false)
-     :ip-address      (or (get-in logs1 [:params :response :remoteIPAddress]) "")
+     ;; :ip-address      (or (get-in logs1 [:params :response :remoteIPAddress]) "")
      :content-length  (total-content-length requests)}))
 
 (defn website-infos [url]
@@ -74,30 +81,39 @@
         l (atom nil)
         i (str (clojure.string/replace
                 (last (re-find #"(?i)(https?://)(.+[^/])" url))
-                #"/" "-") ".jpg")
-        c (e/chrome chromium-opts)
-        e (atom nil)]
-    (e/with-wait 1
-      (e/go c url)
-      (e/screenshot c (str "resources/public/screenshots/" i))
-      (reset! e (db/get-website url))
-      (reset! s (e/get-source c))
-      (reset! l (edev/get-performance-logs c)))
-    (db/add-or-update-entity
-     (merge
-      @e
-      {:url              url
-       :capture-filename i
-       :using-ga?        (if (re-find #"UA-[0-9]+-[0-9]+" @s) true false)}
-      (website-html-infos @s)
-      (website-logs-infos @l)))))
+                #"/" "-") ".jpg")]
+    (if (db/get-website url)
+      (timbre/info (str "Skipping " url))
+      (try
+        (let [c (e/chrome chromium-opts)]
+          (timbre/info (str "Start for " url))
+          (e/with-wait (:wait config/opts)
+            (e/go c url)
+            (e/screenshot c (str (:path-screenshots config/opts) i))
+            (reset! s (e/get-source c))
+            (reset! l (edev/get-performance-logs c)))
+          (db/add-or-update-entity
+           (merge
+            {:url              url
+             :capture-filename i
+             :using-ga?        (if (re-find #"UA-[0-9]+-[0-9]+" @s)
+                                 true
+                                 false)}
+            (website-html-infos @s)
+            (website-logs-infos @l)))
+          (timbre/info (str "Done for " url)))
+        (catch Exception e
+          (timbre/error
+           (str "Can't fetch data for " url ": "
+                (:cause (Throwable->map e)))))))))
 
 (def valid-domains
   (with-open [rdr (io/reader "tested.gouv.fr.txt")]
     (reduce conj [] (line-seq rdr))))
 
 (defn build-websites-database []
-  (map website-infos valid-domains))
+  (doseq [d valid-domains]
+    (website-infos d)))
 
 (def rebuild-database
   (tt/every! (:rebuild-interval config/opts)
@@ -116,15 +132,12 @@
   (GET "/all" []
        (assoc
         (response/response
-         (json/generate-string (db/get-all-websites)))
+         (json/generate-string (db/get-all-filtered-websites)))
         :headers {"Content-Type" "application/json; charset=utf-8"}))
   (resources "/")
   (not-found "Not Found"))
 
-;; FIXME: Don't wrap reload
-(def app (-> #'routes (wrap-cors
-                       :access-control-allow-origin [#".*"]
-                       :access-control-allow-methods [:get]) wrap-reload))
+(def app (-> #'routes wrap-reload))
 
 (defn -main [& args]
   ;; (tt/start!)
