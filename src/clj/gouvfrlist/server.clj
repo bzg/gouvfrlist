@@ -24,10 +24,10 @@
    :spit    (appenders/spit-appender {:fname (:log-file config/opts)})}})
 
 (def chromium-opts
-  {:path-driver   (:path-driver config/opts)
-   :path-browser  (:path-browser config/opts)
-   :load-strategy :none
-   :headless      true
+  {:path-driver  (:path-driver config/opts)
+   :path-browser (:path-browser config/opts)
+   ;; :load-strategy :normal
+   :headless     true
    :dev
    {:perf
     {:level      :all
@@ -36,13 +36,18 @@
      :interval   1000
      :categories [:devtools]}}})
 
-(defn total-content-length [req]
+(defn total-content-length [reqs]
   (reduce
-   + (map read-string
-          (remove nil?
-                  (map #(or (get-in % [:response :headers :Content-Length])
-                            (get-in % [:response :headers :content-length]))
-                       req)))))
+   +
+   (map (fn [ct]
+          (read-string (or (:Content-Length ct)
+                           (:content-length ct) "0")))
+        (remove
+         (fn [req] (re-find
+                    #"video/"
+                    (or (:Content-Type req)
+                        (:content-type req) "")))
+         (remove nil? (map #(get-in % [:response :headers]) reqs))))))
 
 (defn website-html-infos [s]
   (let [h             (filter #(not (string? %)) (h/as-hiccup (h/parse s)))
@@ -65,15 +70,12 @@
 (defn website-logs-infos [logs]
   (let [requests (edev/logs->requests logs)
         logs0    (filter #(= (:method %) "Network.responseReceived")
-                         (map #(:message %) logs))
+                         (map :message logs))
         logs1    (first (filter ;; FIXME: relying on the first response?
                          #(get-in % [:params :response :url])
                          logs0))]
     {:requests-number (count requests)
-     :is-secure?      (if (= (get-in
-                              logs1 [:params :response :securityState]) "secure")
-                        true false)
-     ;; :ip-address      (or (get-in logs1 [:params :response :remoteIPAddress]) "")
+     :is-secure?      (= (get-in logs1 [:params :response :securityState]) "secure")
      :content-length  (total-content-length requests)}))
 
 (defn website-infos [url]
@@ -82,7 +84,7 @@
         i (str (clojure.string/replace
                 (last (re-find #"(?i)(https?://)(.+[^/])" url))
                 #"/" "-") ".jpg")]
-    (if (db/get-website url)
+    (if false ;; (db/get-website url)
       (timbre/info (str "Skipping " url))
       (try
         (let [c (e/chrome chromium-opts)]
@@ -92,16 +94,13 @@
             (e/screenshot c (str (:path-screenshots config/opts) i))
             (reset! s (e/get-source c))
             (reset! l (edev/get-performance-logs c)))
-          (db/add-or-update-entity
-           (merge
-            {:url              url
-             :capture-filename i
-             :using-ga?        (if (re-find #"UA-[0-9]+-[0-9]+" @s)
-                                 true
-                                 false)}
-            (website-html-infos @s)
-            (website-logs-infos @l)))
-          (timbre/info (str "Done for " url)))
+          (timbre/info (str "Done for " url))
+          (merge
+           {:url              url
+            :capture-filename i
+            :using-ga?        (re-find #"UA-[0-9]+-[0-9]+" @s)}
+           (website-html-infos @s)
+           (website-logs-infos @l)))
         (catch Exception e
           (timbre/error
            (str "Can't fetch data for " url ": "
