@@ -78,7 +78,9 @@
   (filter #(re-find
             (re-pattern (str "(?i)" s))
             (gstring/format
-             "%s %s %s" (:url %) (:title %) (:description %)))
+             "%s %s %s %s"
+             (:url %) (:title %)
+             (:description %) (:keywords %)))
           m))
 
 (re-frame/reg-sub
