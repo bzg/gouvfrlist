@@ -300,7 +300,6 @@ http://www.hauts-de-france.developpement-durable.gouv.fr
 http://www.hclpd.gouv.fr
 http://www.homologation.cerfa.gouv.fr
 http://www.horizon2020.gouv.fr
-http://www.host-web.com
 http://www.ifore.developpement-durable.gouv.fr
 http://www.igam.developpement-durable.gouv.fr
 http://www.igas.gouv.fr
