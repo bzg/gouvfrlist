@@ -111,9 +111,9 @@
   (with-open [rdr (io/reader "tested.gouv.fr.txt")]
     (reduce conj [] (line-seq rdr))))
 
-(defn build-websites-database []
-  (doseq [d valid-domains]
-    (website-infos d)))
+(defn build-websites-database [d t]
+  (doseq [w (take t (drop d valid-domains))]
+    (website-infos w)))
 
 (def rebuild-database
   (tt/every! (:rebuild-interval config/opts)
@@ -146,3 +146,4 @@
     (def server (server/run-server app {:port port}))))
 
 ;; (-main)
+
