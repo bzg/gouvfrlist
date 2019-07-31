@@ -129,7 +129,7 @@
 
 (defroutes routes
   (GET "/" [] (default-page))
-  (GET "/all" []
+  (GET "/gouvfr-websites.json" []
        (assoc
         (response/response
          (json/generate-string (db/get-all-websites)))
