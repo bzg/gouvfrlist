@@ -22,6 +22,7 @@
                  [clojure-csv/clojure-csv "2.0.2"]
                  [com.taoensso/timbre "4.10.0"]
                  [tea-time "1.0.1"]]
+  :jvm-opts ["-Xmx1g"]
   :source-paths ["src/clj" "src/cljs"]
   :main gouvfrlist.server
   :uberjar-name "gouvfrlist-standalone.jar"
