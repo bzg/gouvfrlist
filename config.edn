@@ -1,8 +1,8 @@
-{:db-uri           "datahike:file:///home/web/gouvfrlist"
+{:db-uri           "datahike:file:///home/guerry/Documents/boulot/etalab/git/gouvfrlist/gouvfrlistdb"
  :path-driver      "/usr/lib/chromium-browser/chromedriver"
  :path-browser     "/usr/bin/chromium-browser"
  :path-screenshots "resources/public/screenshots/"
  :log-file         "log.txt"
  :rebuild-interval 86400
- :wait             3
+ :wait             1
  :port             "3000"}

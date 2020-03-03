@@ -9,7 +9,7 @@
 
 ;; Create the database
 (defn create-database-with-schema [schema]
-  (d/create-database-with-schema (db-uri) db-schema))
+  (d/create-database (db-uri) db-schema :schema-on-read true))
 
 ;; ;; Delete the database
 ;; (defn delete-database []
@@ -18,7 +18,7 @@
 (try (d/connect (db-uri))
      (catch Exception e
        (println "Initializing datahike database")
-       (d/create-database-with-schema (db-uri) db-schema)))
+       (d/create-database (db-uri) db-schema :schema-on-read true)))
 
 ;; Make the connection to the database
 (def db-conn (d/connect (db-uri)))

@@ -1,3 +1,6 @@
+- Trim title and descriptions
+- ne pas afficher le https? dans vue cards
+
 * gouvfrlist
 
 Display informations on public sector websites.

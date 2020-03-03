@@ -17,3 +17,4 @@ log.txt
 .dir-locals.el
 resources/public/screenshots/
 src/clj/gouvfrlist/utils.clj
+gouvfrlistdb/
